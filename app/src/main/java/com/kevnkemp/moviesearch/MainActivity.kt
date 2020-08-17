@@ -28,20 +28,9 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         btnSearch = findViewById(R.id.btnSearch)
         supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
 
-        val queue = Volley.newRequestQueue(this)
         btnSearch?.setOnClickListener {
-            val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=${etSearch?.text}&page=1"
-            val stringRequest = StringRequest(Request.Method.GET, url, Response.Listener<String> {
-                response ->
-                var result = JSONObject(response)
-                var movies = result.getJSONArray("results")
-                movieList.clear()
-                processResults(movies)
-
-            },
-            Response.ErrorListener { Toast.makeText(this, "There was an error in the request", Toast.LENGTH_SHORT).show() })
+            searchMovie(etSearch?.text.toString())
             supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
-            queue.add(stringRequest)
         }
         etSearch?.setOnClickListener {
            supportFragmentManager.beginTransaction().show(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
@@ -83,8 +72,14 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         db.open()
         var searches = db.getData()
         db.close()
+        searchMovie(searches?.get(index))
+        supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
+
+    }
+
+    fun searchMovie(movie: String) {
         val queue = Volley.newRequestQueue(this)
-        val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=${searches?.get(index)}&page=1"
+        val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$movie&page=1"
         val stringRequest = StringRequest(Request.Method.GET, url, Response.Listener<String> {
                 response ->
             var result = JSONObject(response)
@@ -96,7 +91,5 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
             Response.ErrorListener { Toast.makeText(this, "There was an error in the request", Toast.LENGTH_SHORT).show() })
 
         queue.add(stringRequest)
-        supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
-
     }
 }
