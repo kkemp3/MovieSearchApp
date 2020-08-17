@@ -58,4 +58,8 @@ class SearchList : Fragment() {
         myAdapter = SearchAdapter(this.requireContext(), searchList!!)
         recyclerView?.adapter = myAdapter
     }
+
+    fun updateData() {
+        myAdapter?.notifyDataSetChanged()
+    }
 }

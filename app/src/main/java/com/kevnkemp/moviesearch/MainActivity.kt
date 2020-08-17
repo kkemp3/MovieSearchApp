@@ -16,25 +16,27 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
 
-    var etSearch: EditText? = null
-    var btnSearch: ImageButton? = null
+//    var etSearch: EditText? = null
+//    var btnSearch: ImageButton? = null
+    var svSearch: SearchView? = null
     var movieList = ArrayList<Movie>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        etSearch = findViewById(R.id.etSearch)
-        btnSearch = findViewById(R.id.btnSearch)
-        supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
+        svSearch = findViewById(R.id.svSearch)
 
-        btnSearch?.setOnClickListener {
-            searchMovie(etSearch?.text.toString())
-            supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
-        }
-        etSearch?.setOnClickListener {
-           supportFragmentManager.beginTransaction().show(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
-        }
+        svSearch?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                searchMovie(query!!)
+                svSearch?.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(p0: String?): Boolean {
+                return true
+            }
+        })
 
     }
 
@@ -44,7 +46,7 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         } else {
             var db = SearchDB(this)
             db.open()
-            db.createEntry(etSearch?.text.toString())
+            db.createEntry(svSearch?.query.toString())
             db.close()
         }
         for (i in 0 until results.length()) {
@@ -60,11 +62,9 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         bundle.putParcelableArrayList("movies", movieList)
         val movieList = MovieList()
         movieList.arguments = bundle
-        val searchList = SearchList()
-        var currFrag = supportFragmentManager.findFragmentById(R.id.search_list_frag)
-        supportFragmentManager.beginTransaction().detach(currFrag!!)
-        supportFragmentManager.beginTransaction().attach(currFrag!!)
         supportFragmentManager.beginTransaction().replace(R.id.movie_list_frag, movieList).commit()
+        var searchList = SearchList()
+        searchList.updateData()
     }
 
     override fun onItemClick(index: Int) {
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         var searches = db.getData()
         db.close()
         searchMovie(searches?.get(index))
-        supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
+        //supportFragmentManager.beginTransaction().hide(supportFragmentManager.findFragmentById(R.id.search_list_frag)!!).commit()
 
     }
 
