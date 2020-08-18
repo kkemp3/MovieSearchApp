@@ -2,19 +2,24 @@ package com.kevnkemp.moviesearch
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.room.*
 
-class SearchDao {
-    private val searchList = mutableListOf<Search>()
-    private val searches = MutableLiveData<List<Search>>()
+@Dao
+interface SearchDao {
 
-    init {
-        searches.value = searchList
-    }
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(search: Search)
 
-    fun addSearch(search: Search) {
-        searchList.add(search)
-        searches.value = searchList
-    }
+    @Update
+    suspend fun update(search: Search)
 
-    fun getSearches() = searches as LiveData<List<Search>>
+    @Delete
+    suspend fun delete(search: Search)
+
+    @Query("DELETE FROM search_table")
+    suspend fun deleteAllSearches()
+
+    @Query("SELECT * FROM search_table")
+    fun getAllSearches() : LiveData<List<Search>>
+
 }

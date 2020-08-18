@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.lifecycle.*
+import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -26,13 +29,25 @@ class MovieList : Fragment() {
     var myAdapter: RecyclerView.Adapter<MovieAdapter.MovieViewHolder>? = null
     var layoutManager: RecyclerView.LayoutManager? = null
     var myView: View? = null
-    var movieList = ArrayList<Movie>()
+    private var searchViewModel = ViewModelProvider(this)[SearchViewModel::class.java]
+
+    //var movieList = ArrayList<Movie>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            movieList = arguments!!.getParcelableArrayList<Movie>("movies") as ArrayList<Movie>
-        }
-        recyclerBoilerPlate()
+//        if (arguments != null) {
+//            movieList = arguments!!.getParcelableArrayList<Movie>("movies") as ArrayList<Movie>
+//        }
+        recyclerView = myView?.findViewById(R.id.movie_list)
+        recyclerView?.setHasFixedSize(true)
+
+        layoutManager = LinearLayoutManager(this.activity)
+        recyclerView?.layoutManager = layoutManager
+
+        myAdapter = MovieAdapter(this.requireContext())
+        recyclerView?.adapter = myAdapter
+
+
+
     }
 
     override fun onCreateView(
@@ -46,18 +61,11 @@ class MovieList : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        recyclerBoilerPlate()
+
     }
 
-    fun recyclerBoilerPlate() {
-        recyclerView = myView?.findViewById(R.id.movie_list)
-        recyclerView?.setHasFixedSize(true)
-
-        layoutManager = LinearLayoutManager(this.activity)
-        recyclerView?.layoutManager = layoutManager
-
-        myAdapter = MovieAdapter(this.requireContext(), movieList!!)
-        recyclerView?.adapter = myAdapter
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 
 }

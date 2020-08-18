@@ -10,7 +10,8 @@
         android:id="@+id/movie_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:outlineAmbientShadowColor="@color/colorPrimaryDark">
+        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
+        tools:listitem="@layout/row_layout">
 
     </androidx.recyclerview.widget.RecyclerView>
 

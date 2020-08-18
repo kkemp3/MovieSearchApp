@@ -11,10 +11,10 @@ import com.bumptech.glide.Glide
 
 import org.w3c.dom.Text
 
-class MovieAdapter(context: Context, list: ArrayList<Movie>) :
+class MovieAdapter(context: Context) :
     RecyclerView.Adapter<MovieAdapter.MovieViewHolder>(){
 
-    var movies: ArrayList<Movie> = list
+    var movies = emptyList<Movie>()
     var ctx = context
 
     inner class MovieViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
@@ -46,7 +46,7 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
     }
 
     override fun getItemCount(): Int {
-        return movies?.size!!
+        return movies.size
     }
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
@@ -54,5 +54,10 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
         holder.itemView.tag = movies[position]
         holder.bind(movie)
 
+    }
+
+    internal fun setMovies(movies: ArrayList<Movie>) {
+        this.movies = movies
+        notifyDataSetChanged()
     }
 }

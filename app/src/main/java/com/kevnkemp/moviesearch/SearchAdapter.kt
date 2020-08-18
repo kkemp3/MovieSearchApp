@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class SearchAdapter(context: Context, list: List<String>) :
+class SearchAdapter(context: Context) :
     RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
 
-    var searches = list
+    var searches = emptyList<Search>()
     var activity: ItemClicked? = null
 
 
@@ -17,7 +17,7 @@ class SearchAdapter(context: Context, list: List<String>) :
         activity = context as ItemClicked
     }
     interface ItemClicked {
-        fun onItemClick(index: Int)
+        fun onItemClick(search: Search)
     }
     inner class ViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
         RecyclerView.ViewHolder(inflater.inflate(R.layout.search_row, parent, false)) {
@@ -25,11 +25,12 @@ class SearchAdapter(context: Context, list: List<String>) :
         var tvSearchSuggestion: TextView = itemView.findViewById<TextView>(R.id.tvSearchSuggestion)
         init {
             itemView.setOnClickListener {
-                activity?.onItemClick(searches.indexOf(it.tag as String))
+                val pos = adapterPosition
+                activity?.onItemClick(searches.get(pos))
             }
         }
-        fun bind(phrase: String) {
-            tvSearchSuggestion.text = phrase
+        fun bind(search: Search) {
+            tvSearchSuggestion.text = search.query
         }
 
     }
@@ -44,8 +45,18 @@ class SearchAdapter(context: Context, list: List<String>) :
     }
 
     override fun onBindViewHolder(holder: SearchAdapter.ViewHolder, position: Int) {
-        val phrase = searches[position]
+        val search = searches[position]
         holder.itemView.tag = searches[position]
-        holder.bind(phrase)
+        holder.bind(search)
     }
+
+    internal fun setSearches(searches: List<Search>) {
+        this.searches = searches
+        notifyDataSetChanged()
+    }
+
+    internal fun getSearchAt(position: Int) : Search {
+        return searches[position]
+    }
+
 }
