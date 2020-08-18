@@ -124,7 +124,6 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
                 mAdapter?.notifyDataSetChanged()
                 return true
             }
-
         })
         searchView?.setOnClickListener {
             recyclerView?.visibility = View.VISIBLE

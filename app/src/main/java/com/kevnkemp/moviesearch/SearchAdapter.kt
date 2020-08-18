@@ -22,7 +22,7 @@ class SearchAdapter(context: Context, list: List<String>) :
     inner class ViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
         RecyclerView.ViewHolder(inflater.inflate(R.layout.search_row, parent, false)) {
 
-        var tvSearchSuggestion = itemView.findViewById<TextView>(R.id.tvSearchSuggestion)
+        var tvSearchSuggestion: TextView = itemView.findViewById<TextView>(R.id.tvSearchSuggestion)
         init {
             itemView.setOnClickListener {
                 activity?.onItemClick(searches.indexOf(it.tag as String))
