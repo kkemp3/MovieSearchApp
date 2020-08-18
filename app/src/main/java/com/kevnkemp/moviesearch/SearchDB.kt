@@ -66,8 +66,8 @@ class SearchDB(context: Context) {
     }
 
     fun getData() : List<String> {
-        val columns = arrayOf(KEY_ROW_ID, KEY_PHRASE)
-        val c: Cursor? = db?.query(DATABASE_TABLE, columns, null, null, null, null, null )
+        val columns = arrayOf(KEY_ROW_ID, KEY_PHRASE )
+        val c: Cursor? = db?.query(DATABASE_TABLE, columns , null, null, null, null,null)
         val iRow = c?.getColumnIndex(KEY_ROW_ID)
         val iPhrase = c?.getColumnIndex(KEY_PHRASE)
         var result = ArrayList<String>()
@@ -75,6 +75,10 @@ class SearchDB(context: Context) {
             result.add(c.getString(iPhrase!!))
         }
         c.close()
-        return result.reversed()
+        if (result.size > 10) {
+            return result.subList(result.size-10, result.size).reversed()
+        } else {
+            return result.reversed()
+        }
     }
 }
