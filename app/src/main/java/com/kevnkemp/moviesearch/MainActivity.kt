@@ -103,12 +103,11 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
             var movie = Movie(path, title, date, desc)
             movieList.add(movie)
         }
-        searchViewModel.setMovies(movieList)
-//        var bundle = Bundle()
-//        bundle.putParcelableArrayList("movies", movieList)
-//        val movieList = MovieList()
-//        movieList.arguments = bundle
-//        supportFragmentManager.beginTransaction().replace(R.id.movie_list_frag, movieList).commit()
+        var bundle = Bundle()
+        bundle.putParcelableArrayList("movies", movieList)
+        val movieList = MovieList()
+        movieList.arguments = bundle
+        supportFragmentManager.beginTransaction().replace(R.id.movie_list_frag, movieList).commit()
         recyclerView?.visibility = View.GONE
     }
 
