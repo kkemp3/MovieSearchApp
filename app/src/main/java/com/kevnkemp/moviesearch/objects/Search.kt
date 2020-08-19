@@ -1,9 +1,10 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.objects
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "search_table")
+@Entity(tableName = "search_table", indices = [Index(value = ["query"], unique = true)])
 class Search() {
 
     @PrimaryKey(autoGenerate = true)

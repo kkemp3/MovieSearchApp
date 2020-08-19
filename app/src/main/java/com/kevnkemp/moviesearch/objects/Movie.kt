@@ -1,4 +1,4 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.objects
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize

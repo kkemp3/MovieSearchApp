@@ -1,9 +1,8 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.data
 
-import android.app.Application
-import android.os.AsyncTask
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import com.kevnkemp.moviesearch.data.SearchDao
+import com.kevnkemp.moviesearch.objects.Search
 
 class SearchRepository(private val searchDao: SearchDao) {
 

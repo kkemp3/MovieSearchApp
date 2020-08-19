@@ -1,20 +1,19 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-
-import org.w3c.dom.Text
+import com.kevnkemp.moviesearch.objects.Movie
+import com.kevnkemp.moviesearch.R
 
 class MovieAdapter(context: Context, list: ArrayList<Movie>) :
     RecyclerView.Adapter<MovieAdapter.MovieViewHolder>(){
 
-    var movies: ArrayList<Movie> = list
+    var movies = emptyList<Movie>()
     var ctx = context
 
     inner class MovieViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
@@ -31,10 +30,17 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
             tvMovieDesc = itemView.findViewById(R.id.tvMovieDesc)
         }
 
+//        var formatter = "yyyy-MM-dd"
+//        var dateFormatter = SimpleDateFormat(formatter)
         fun bind(movie: Movie) {
             Glide.with(ctx).load("https://image.tmdb.org/t/p/w92${movie.imgLocation}").into(ivMovieImg!!)
             tvMovieName?.text = movie.name
-            tvMovieDate?.text = "Release date: ${movie.date}"
+//            if (movie.date.matches("\\d{4}-\\d{2}-\\d{2}".toRegex())) {
+//                var date  = dateFormatter.format(movie.date)
+//                tvMovieDate?.text = "Released ${date.toString()}"
+//            } else {
+                tvMovieDate?.text = movie.date
+//            }
             tvMovieDesc?.text = movie.desc
         }
 
@@ -54,5 +60,10 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
         holder.itemView.tag = movies[position]
         holder.bind(movie)
 
+    }
+
+    fun setMovies(movies: ArrayList<Movie>) {
+        this.movies = movies
+        notifyDataSetChanged()
     }
 }

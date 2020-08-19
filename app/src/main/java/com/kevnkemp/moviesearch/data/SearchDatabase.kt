@@ -1,9 +1,10 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.kevnkemp.moviesearch.objects.Search
 
 @Database(entities = arrayOf(Search::class), version = 1)
 abstract class SearchDatabase : RoomDatabase() {
@@ -16,7 +17,8 @@ abstract class SearchDatabase : RoomDatabase() {
         private var INSTANCE: SearchDatabase? = null
 
         fun getDatabase(context: Context) : SearchDatabase {
-            val tempInstance = INSTANCE
+            val tempInstance =
+                INSTANCE
             if (tempInstance != null) {
                 return tempInstance
             }

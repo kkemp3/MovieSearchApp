@@ -1,10 +1,12 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.kevnkemp.moviesearch.R
+import com.kevnkemp.moviesearch.objects.Search
 
 class SearchAdapter(context: Context) :
     RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
@@ -35,7 +37,7 @@ class SearchAdapter(context: Context) :
 
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchAdapter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return ViewHolder(inflater, parent)
     }
@@ -44,7 +46,7 @@ class SearchAdapter(context: Context) :
         return searches.size
     }
 
-    override fun onBindViewHolder(holder: SearchAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val search = searches[position]
         holder.itemView.tag = searches[position]
         holder.bind(search)

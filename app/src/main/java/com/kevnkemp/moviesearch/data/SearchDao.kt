@@ -1,8 +1,8 @@
-package com.kevnkemp.moviesearch
+package com.kevnkemp.moviesearch.data
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.room.*
+import com.kevnkemp.moviesearch.objects.Search
 
 @Dao
 interface SearchDao {
