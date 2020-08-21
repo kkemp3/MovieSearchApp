@@ -60,7 +60,7 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
 
     }
 
-    fun setMovies(movies: ArrayList<Movie>) {
+    internal fun setMovies(movies: ArrayList<Movie>) {
         this.movies = movies
         notifyDataSetChanged()
     }

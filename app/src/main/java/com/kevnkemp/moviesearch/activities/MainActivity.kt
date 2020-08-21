@@ -36,9 +36,9 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
 
 
     var movieList = ArrayList<Movie>()
-    var recyclerView: RecyclerView? = null
-    var mAdapter: RecyclerView.Adapter<SearchAdapter.ViewHolder>? = null
-    var layoutManager: RecyclerView.LayoutManager?  = null
+//    var recyclerView: RecyclerView? = null
+//    var mAdapter: RecyclerView.Adapter<SearchAdapter.ViewHolder>? = null
+//    var layoutManager: RecyclerView.LayoutManager?  = null
     var currentQuery: String? = "batman"
     private lateinit var searchViewModel: SearchViewModel
 
@@ -48,48 +48,48 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
 
 
         // should move all this logic to a new fragment
-        recyclerView = findViewById(R.id.recent_searches)
-        recyclerView?.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        recyclerView?.layoutManager = layoutManager
-        mAdapter = SearchAdapter(this)
-        recyclerView?.adapter = mAdapter
-        recyclerView?.visibility = View.GONE
-
+//        recyclerView = findViewById(R.id.recent_searches)
+//        recyclerView?.setHasFixedSize(true)
+//        layoutManager = LinearLayoutManager(this)
+//        recyclerView?.layoutManager = layoutManager
+//        mAdapter = SearchAdapter(this)
+//        recyclerView?.adapter = mAdapter
+//        recyclerView?.visibility = View.GONE
+//
         searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        searchViewModel.getAllSearches()?.observe(this, Observer { searches ->
-            if (searches.size < 10) {
-                searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
-            } else {
-                searches?.let {
-                    (mAdapter as SearchAdapter).setSearches(
-                        it.subList(
-                            searches.size - 10,
-                            it.size
-                        ).reversed()
-                    )
-                }
-
-            }
-        })
-
-        val itemTouchHelperCallback = object :
-            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                return false
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                searchViewModel.delete((mAdapter as SearchAdapter).getSearchAt(viewHolder.adapterPosition))
-            }
-        }
-
-        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
+//        searchViewModel.getAllSearches()?.observe(this, Observer { searches ->
+//            if (searches.size < 10) {
+//                searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
+//            } else {
+//                searches?.let {
+//                    (mAdapter as SearchAdapter).setSearches(
+//                        it.subList(
+//                            searches.size - 10,
+//                            it.size
+//                        ).reversed()
+//                    )
+//                }
+//
+//            }
+//        })
+//
+//        val itemTouchHelperCallback = object :
+//            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+//            override fun onMove(
+//                recyclerView: RecyclerView,
+//                viewHolder: RecyclerView.ViewHolder,
+//                target: RecyclerView.ViewHolder
+//            ): Boolean {
+//                return false
+//            }
+//
+//            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+//                searchViewModel.delete((mAdapter as SearchAdapter).getSearchAt(viewHolder.adapterPosition))
+//            }
+//        }
+//
+//        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+//        itemTouchHelper.attachToRecyclerView(recyclerView)
 
     }
 
@@ -119,7 +119,8 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         }
 
         if (movieList.size > 0 ) searchViewModel.setMovies(movieList)
-        recyclerView?.visibility = View.GONE
+//        recyclerView?.visibility = View.GONE
+        searchViewModel.areSuggestionsVisible.value = false
     }
 
     override fun onItemClick(search: Search) {
@@ -161,22 +162,30 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
                     searchViewModel.setPageNumber(1)
                 }
                 searchMovie(query)
-                recyclerView?.visibility = View.GONE
+//                recyclerView?.visibility = View.GONE
+                searchViewModel.areSuggestionsVisible.value = false
+
                 searchView.clearFocus()
                 return true
             }
 
             override fun onQueryTextChange(p0: String?): Boolean {
-                recyclerView?.visibility = View.VISIBLE
+//                recyclerView?.visibility = View.VISIBLE
+                searchViewModel.areSuggestionsVisible.value = true
+
                 return true
             }
         })
         searchView?.setOnSearchClickListener {
-            recyclerView?.visibility = View.VISIBLE
+//            recyclerView?.visibility = View.VISIBLE
+            searchViewModel.areSuggestionsVisible.value = true
+
         }
 
         searchView?.setOnCloseListener {
-            recyclerView?.visibility = View.GONE
+//            recyclerView?.visibility = View.GONE
+            searchViewModel.areSuggestionsVisible.value = false
+
             true
         }
 

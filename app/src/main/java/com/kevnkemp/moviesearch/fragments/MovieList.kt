@@ -42,7 +42,6 @@ class MovieList : Fragment() {
     var myView: View? = null
     var movieList = ArrayList<Movie>()
     var viewModel: SearchViewModel? = null
-    var pageNumber = 1
     var queue: RequestQueue? = null
     var query: String? = null
     var isLoading = false
