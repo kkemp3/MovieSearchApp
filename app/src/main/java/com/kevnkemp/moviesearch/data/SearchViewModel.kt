@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.kevnkemp.moviesearch.objects.Movie
-import com.kevnkemp.moviesearch.objects.Search
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

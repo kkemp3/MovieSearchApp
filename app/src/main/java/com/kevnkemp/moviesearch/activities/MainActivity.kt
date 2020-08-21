@@ -1,14 +1,13 @@
 package com.kevnkemp.moviesearch.activities
 
-import android.app.SearchManager
-import android.database.Cursor
-import android.database.MatrixCursor
+import android.app.Activity
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import com.android.volley.Request
 import com.android.volley.Response
@@ -17,18 +16,14 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.appcompat.widget.SearchView
-import androidx.cursoradapter.widget.CursorAdapter
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.DefaultRetryPolicy
-import com.android.volley.RequestQueue
 import com.kevnkemp.moviesearch.objects.Movie
 import com.kevnkemp.moviesearch.R
-import com.kevnkemp.moviesearch.objects.Search
+import com.kevnkemp.moviesearch.data.Search
 import com.kevnkemp.moviesearch.adapters.SearchAdapter
-import com.kevnkemp.moviesearch.adapters.SearchCursorAdapter
 import com.kevnkemp.moviesearch.data.SearchViewModel
 import org.json.JSONException
 
@@ -126,6 +121,8 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
         searchViewModel.setQuery(search.query!!)
         searchViewModel.setPageNumber(1)
         searchMovie(search.query)
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(this.currentFocus?.windowToken, 0)
     }
 
     fun searchMovie(movie: String? = currentQuery, page: Int = 1) {
@@ -182,5 +179,4 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
 
         return super.onCreateOptionsMenu(menu)
     }
-
 }

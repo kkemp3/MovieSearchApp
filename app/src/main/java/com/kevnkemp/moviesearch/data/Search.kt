@@ -1,4 +1,4 @@
-package com.kevnkemp.moviesearch.objects
+package com.kevnkemp.moviesearch.data
 
 import androidx.room.Entity
 import androidx.room.Index

@@ -2,8 +2,6 @@ package com.kevnkemp.moviesearch.data
 
 import android.database.Cursor
 import androidx.lifecycle.LiveData
-import com.kevnkemp.moviesearch.data.SearchDao
-import com.kevnkemp.moviesearch.objects.Search
 
 class SearchRepository(private val searchDao: SearchDao) {
 

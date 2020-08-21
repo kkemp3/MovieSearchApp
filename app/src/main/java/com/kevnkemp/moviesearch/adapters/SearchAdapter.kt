@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kevnkemp.moviesearch.R
-import com.kevnkemp.moviesearch.objects.Search
+import com.kevnkemp.moviesearch.data.Search
 
 class SearchAdapter(context: Context) :
     RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
