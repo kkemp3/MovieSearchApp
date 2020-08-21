@@ -3,8 +3,12 @@ package com.kevnkemp.moviesearch.adapters
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.kevnkemp.moviesearch.objects.Movie
@@ -30,17 +34,11 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
             tvMovieDesc = itemView.findViewById(R.id.tvMovieDesc)
         }
 
-//        var formatter = "yyyy-MM-dd"
-//        var dateFormatter = SimpleDateFormat(formatter)
+
         fun bind(movie: Movie) {
             Glide.with(ctx).load("https://image.tmdb.org/t/p/w92${movie.imgLocation}").into(ivMovieImg!!)
             tvMovieName?.text = movie.name
-//            if (movie.date.matches("\\d{4}-\\d{2}-\\d{2}".toRegex())) {
-//                var date  = dateFormatter.format(movie.date)
-//                tvMovieDate?.text = "Released ${date.toString()}"
-//            } else {
-                tvMovieDate?.text = movie.date
-//            }
+            tvMovieDate?.text = "Released: ${movie.date}"
             tvMovieDesc?.text = movie.desc
         }
 

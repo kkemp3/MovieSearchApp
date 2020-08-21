@@ -1,5 +1,6 @@
 package com.kevnkemp.moviesearch.data
 
+import android.database.Cursor
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.kevnkemp.moviesearch.objects.Search
@@ -21,5 +22,8 @@ interface SearchDao {
 
     @Query("SELECT * FROM search_table")
     fun getAllSearches() : LiveData<List<Search>>
+
+    @Query("SELECT * FROM search_table")
+    fun getSearchCursor() : Cursor
 
 }

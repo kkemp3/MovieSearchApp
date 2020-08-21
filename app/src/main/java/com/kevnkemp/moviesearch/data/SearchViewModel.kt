@@ -1,6 +1,7 @@
 package com.kevnkemp.moviesearch.data
 
 import android.app.Application
+import android.database.Cursor
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +17,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val allSearches: LiveData<List<Search>>
     private val movies: MutableLiveData<ArrayList<Movie>>
     private val query: MutableLiveData<String>
+    private val pageNumber: MutableLiveData<Int>
+    val areSuggestionsVisible = MutableLiveData<Boolean>()
 
     init {
         val searchDao = SearchDatabase.getDatabase(application).searchDoa()
@@ -23,6 +26,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         allSearches = repository.allSearches
         movies = MutableLiveData<ArrayList<Movie>>()
         query = MutableLiveData<String>()
+        pageNumber = MutableLiveData<Int>()
+
 
     }
 
@@ -31,6 +36,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun update(search: Search) = viewModelScope.launch(Dispatchers.IO) {
+        // not yet implemented
         repository.update(search)
     }
 
@@ -39,6 +45,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun deleteAllSearches() = viewModelScope.launch(Dispatchers.IO) {
+        // not yet implemented
         repository.deleteAllSearches()
     }
 
@@ -62,6 +69,17 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
     fun setQuery(query: String) {
         this.query.value = query
+    }
+
+    fun getPageNumber() : MutableLiveData<Int> {
+        return pageNumber
+    }
+    fun setPageNumber(number: Int) {
+        this.pageNumber.value = number
+    }
+
+    fun getSearchCursor() : Cursor? {
+        return repository.searchCursor
     }
 
 }

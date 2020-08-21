@@ -1,5 +1,8 @@
 package com.kevnkemp.moviesearch.activities
 
+import android.app.SearchManager
+import android.database.Cursor
+import android.database.MatrixCursor
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -14,20 +17,22 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.appcompat.widget.SearchView
+import androidx.cursoradapter.widget.CursorAdapter
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.RequestQueue
 import com.kevnkemp.moviesearch.objects.Movie
 import com.kevnkemp.moviesearch.R
 import com.kevnkemp.moviesearch.objects.Search
 import com.kevnkemp.moviesearch.adapters.SearchAdapter
+import com.kevnkemp.moviesearch.adapters.SearchCursorAdapter
 import com.kevnkemp.moviesearch.data.SearchViewModel
 import org.json.JSONException
 
-class MainActivity : AppCompatActivity(),
-    SearchAdapter.ItemClicked {
+class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked {
 
 
     var movieList = ArrayList<Movie>()
@@ -35,21 +40,21 @@ class MainActivity : AppCompatActivity(),
     var mAdapter: RecyclerView.Adapter<SearchAdapter.ViewHolder>? = null
     var layoutManager: RecyclerView.LayoutManager?  = null
     var currentQuery: String? = "batman"
-    var queue: RequestQueue? = null
     private lateinit var searchViewModel: SearchViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+        // should move all this logic to a new fragment
         recyclerView = findViewById(R.id.recent_searches)
         recyclerView?.setHasFixedSize(true)
         layoutManager = LinearLayoutManager(this)
         recyclerView?.layoutManager = layoutManager
         mAdapter = SearchAdapter(this)
         recyclerView?.adapter = mAdapter
-        queue = Volley.newRequestQueue(this)
-
+        recyclerView?.visibility = View.GONE
 
         searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
         searchViewModel.getAllSearches()?.observe(this, Observer { searches ->
@@ -89,11 +94,13 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun processResults(results: JSONArray, query: String) {
+
         if (results.length() == 0) {
             Toast.makeText(this, "No movies found with that title!", Toast.LENGTH_SHORT).show()
         } else {
             searchViewModel.insert(Search(query))
         }
+
         for (i in 0 until results.length()) {
             var title = results.getJSONObject(i).getString("title")
             var date: String = "No release date found"
@@ -110,45 +117,48 @@ class MainActivity : AppCompatActivity(),
                 Movie(path, title, date, desc)
             movieList.add(movie)
         }
+
         if (movieList.size > 0 ) searchViewModel.setMovies(movieList)
         recyclerView?.visibility = View.GONE
     }
 
     override fun onItemClick(search: Search) {
         searchViewModel.setQuery(search.query!!)
+        searchViewModel.setPageNumber(1)
         searchMovie(search.query)
     }
 
     fun searchMovie(movie: String? = currentQuery, page: Int = 1) {
-        val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$movie&page=$page"
-        val stringRequest =
-            StringRequest(Request.Method.GET, url, Response.Listener<String> { response ->
-                var result = JSONObject(response)
-                var movies = result.getJSONArray("results")
-                Log.d("TAG", "searchMovie: page number: $page")
-                if (page == 1) {
-                    movieList.clear()
-                } else {
-                    print("here")
-                }
-                processResults(movies, movie!!)
 
-            },
-                Response.ErrorListener {
-                    Toast.makeText(this, "There was an error in the request", Toast.LENGTH_SHORT).show()
-                })
+        val queue = Volley.newRequestQueue(this)
+        val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$movie&page=$page"
+
+        val stringRequest = StringRequest(Request.Method.GET, url, Response.Listener<String> { response ->
+
+            var result = JSONObject(response)
+            var movies = result.getJSONArray("results")
+            if (page == 1) movieList.clear()
+            processResults(movies, movie!!)
+
+        }, Response.ErrorListener {
+            Toast.makeText(this, "There was an error in the request", Toast.LENGTH_SHORT).show()
+        })
 
         queue?.add(stringRequest)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+
         menuInflater.inflate(R.menu.main_menu, menu)
         var item: MenuItem? = menu?.findItem(R.id.action_search)
         var searchView: SearchView? = item?.actionView as SearchView
+
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     searchViewModel.setQuery(query)
+                    searchViewModel.setPageNumber(1)
                 }
                 searchMovie(query)
                 recyclerView?.visibility = View.GONE
@@ -161,20 +171,14 @@ class MainActivity : AppCompatActivity(),
                 return true
             }
         })
-        searchView?.setOnSearchClickListener(object : View.OnClickListener {
-            override fun onClick(p0: View?) {
-                recyclerView?.visibility = View.VISIBLE
-            }
+        searchView?.setOnSearchClickListener {
+            recyclerView?.visibility = View.VISIBLE
+        }
 
-        })
-
-        searchView?.setOnCloseListener( object: SearchView.OnCloseListener {
-            override fun onClose(): Boolean {
-                recyclerView?.visibility = View.GONE
-                return true
-            }
-
-        })
+        searchView?.setOnCloseListener {
+            recyclerView?.visibility = View.GONE
+            true
+        }
 
         return super.onCreateOptionsMenu(menu)
     }

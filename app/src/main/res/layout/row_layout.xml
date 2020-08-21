@@ -5,16 +5,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cvMovie"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="3dp"
-        android:layout_marginBottom="2dp"
         android:layout_marginRight="10dp"
+        android:layout_marginBottom="2dp"
         android:elevation="3dp"
+        app:cardBackgroundColor="@color/colorPrimary"
         app:cardCornerRadius="3dp"
-        app:cardUseCompatPadding="false"
-        app:cardBackgroundColor="@color/colorPrimary">
+        app:cardUseCompatPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,6 +36,7 @@
                     app:srcCompat="@drawable/ic_launcher_foreground" />
 
                 <LinearLayout
+                    android:id="@+id/llMovieInfo"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="2"

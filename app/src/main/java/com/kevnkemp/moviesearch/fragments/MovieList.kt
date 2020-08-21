@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.size
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -41,9 +42,10 @@ class MovieList : Fragment() {
     var myView: View? = null
     var movieList = ArrayList<Movie>()
     var viewModel: SearchViewModel? = null
-    var pageNumber = 2
+    var pageNumber = 1
     var queue: RequestQueue? = null
     var query: String? = null
+    var isLoading = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         recyclerBoilerPlate()
@@ -63,32 +65,34 @@ class MovieList : Fragment() {
         recyclerBoilerPlate()
     }
 
-    fun recyclerBoilerPlate() {
+    private fun recyclerBoilerPlate() {
         queue = Volley.newRequestQueue(requireContext())
         recyclerView = myView?.findViewById(R.id.movie_list)
         recyclerView?.setHasFixedSize(true)
+        layoutManager = LinearLayoutManager(this.activity)
+        recyclerView?.layoutManager = layoutManager
+        myAdapter = MovieAdapter(this.requireContext(), movieList!!)
+        recyclerView?.adapter = myAdapter
+
+        viewModel = ViewModelProvider(this.requireActivity()).get(SearchViewModel::class.java)
         recyclerView?.addOnScrollListener( object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+//                var lastCount = (layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
+//                var movieCount = viewModel?.getMovies()?.value?.size?.minus(1)
                 if (!recyclerView?.canScrollVertically(1)) {
                     // request next page of API
-                    Toast.makeText(requireContext(), "End of list", Toast.LENGTH_SHORT).show()
-                    searchMovie(viewModel?.getQuery()?.value, page = pageNumber)
-                    pageNumber++
+                    Toast.makeText(requireContext(), "Getting new data for page ${viewModel?.getPageNumber()?.value}", Toast.LENGTH_SHORT).show()
+                    isLoading = true
+                    if (viewModel?.getPageNumber()?.value!! > 1) {
+                        searchMovie(viewModel?.getQuery()?.value, page = viewModel?.getPageNumber()?.value!!)
+                    }
+                    viewModel?.setPageNumber(viewModel?.getPageNumber()?.value!!.plus(1)!!)
                 }
             }
         })
 
-        layoutManager = LinearLayoutManager(this.activity)
 
-        recyclerView?.layoutManager = layoutManager
-
-        myAdapter = MovieAdapter(
-            this.requireContext(),
-            movieList!!
-        )
-        recyclerView?.adapter = myAdapter
-        viewModel = ViewModelProvider(this.requireActivity()).get(SearchViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -109,6 +113,8 @@ class MovieList : Fragment() {
                     var movies = result.getJSONArray("results")
                     if (movies.length() > 0) {
                         processResults(movies, movie!!)
+                    } else {
+                        Toast.makeText(requireContext(), "All results shown!", Toast.LENGTH_SHORT).show()
                     }
             },
                 Response.ErrorListener {
@@ -137,5 +143,6 @@ class MovieList : Fragment() {
             movieList.add(movie)
         }
         if (movieList.size > 0 ) viewModel?.appendMovies(movieList)
+        isLoading = false
     }
 }
