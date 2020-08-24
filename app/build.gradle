@@ -28,6 +28,10 @@ android {
         google()
         jcenter()
     }
+
+    buildFeatures {
+        dataBinding true
+    }
 }
 
 dependencies {

@@ -2,6 +2,8 @@ package com.kevnkemp.moviesearch.activities
 
 import android.app.Activity
 import android.content.Context
+import android.database.MatrixCursor
+import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -16,6 +18,7 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.appcompat.widget.SearchView
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,6 +29,7 @@ import com.kevnkemp.moviesearch.adapters.MovieAdapter
 import com.kevnkemp.moviesearch.data.Search
 import com.kevnkemp.moviesearch.adapters.SearchAdapter
 import com.kevnkemp.moviesearch.data.SearchViewModel
+import com.kevnkemp.moviesearch.databinding.ActivityMainBinding
 import com.kevnkemp.moviesearch.fragments.MovieDetail
 import org.json.JSONException
 
@@ -38,92 +42,15 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
     var layoutManager: RecyclerView.LayoutManager?  = null
     var currentQuery: String? = "batman"
     private lateinit var searchViewModel: SearchViewModel
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-
-        // should move all this logic to a new fragment
-        recyclerView = findViewById(R.id.recent_searches)
-        recyclerView?.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        recyclerView?.layoutManager = layoutManager
-        mAdapter = SearchAdapter(this)
-        recyclerView?.adapter = mAdapter
-        recyclerView?.visibility = View.GONE
-
-        searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        searchViewModel.allSearches?.observe(this, Observer { searches ->
-            if (searches.size < 10) {
-                searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
-            } else {
-                searches?.let {
-                    (mAdapter as SearchAdapter).setSearches(
-                        it.subList(
-                            searches.size - 10,
-                            it.size
-                        ).reversed()
-                    )
-                }
-
-            }
-        })
-
-        val itemTouchHelperCallback = object :
-            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                return false
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                searchViewModel.delete((mAdapter as SearchAdapter).getSearchAt(viewHolder.adapterPosition))
-            }
-        }
-
-        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
-
-        searchMovie("popular")
-        searchViewModel.setQuery("popular")
-        searchViewModel.pageNumber.value = 1
-
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        setupSearchRecyclerView()
+        setupViewModel()
     }
 
-    private fun processResults(results: JSONArray, query: String) {
-
-        if (results.length() == 0) {
-            Toast.makeText(this, "No movies found with that title!", Toast.LENGTH_SHORT).show()
-        } else {
-            if (!query.equals("popular")) {
-                searchViewModel.insert(Search(query))
-            }
-        }
-
-        for (i in 0 until results.length()) {
-            var title = results.getJSONObject(i).getString("title")
-            var date: String = "No release date found"
-            try {
-                date = results.getJSONObject(i).getString("release_date")
-            } catch (e: JSONException) {
-
-            } finally {
-                if (date.isEmpty()) date = "No release date found"
-            }
-            var desc = results.getJSONObject(i).getString("overview")
-            var path = results.getJSONObject(i).getString("poster_path")
-            var movie =
-                Movie(path, title, date, desc)
-            movieList.add(movie)
-        }
-
-        if (movieList.size > 0 ) searchViewModel.setMovies(movieList)
-        recyclerView?.visibility = View.GONE
-    }
 
     override fun onItemClick(search: Search) {
         searchViewModel.setQuery(search.query!!)
@@ -157,14 +84,49 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
         queue?.add(stringRequest)
     }
 
+    private fun processResults(results: JSONArray, query: String) {
+
+        if (results.length() == 0) {
+            Toast.makeText(this, "No movies found with that title!", Toast.LENGTH_SHORT).show()
+        } else {
+            if (query != "popular") {
+                searchViewModel.insert(Search(query))
+            }
+        }
+
+        for (i in 0 until results.length()) {
+            var title = results.getJSONObject(i).getString("title")
+            var date: String = "No release date found"
+            try {
+                date = results.getJSONObject(i).getString("release_date")
+            } catch (e: JSONException) {
+
+            } finally {
+                if (date.isEmpty()) date = "No release date found"
+            }
+            var desc = results.getJSONObject(i).getString("overview")
+            var path = results.getJSONObject(i).getString("poster_path")
+            var movie = Movie(path, title, date, desc)
+            movieList.add(movie)
+        }
+
+        if (movieList.size > 0 ) {
+            searchViewModel.setMovies(movieList)
+        }
+        recyclerView?.visibility = View.GONE
+    }
+
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
         menuInflater.inflate(R.menu.main_menu, menu)
         var item: MenuItem? = menu?.findItem(R.id.action_search)
         var searchView: SearchView? = item?.actionView as SearchView
 
-        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView?.isIconified = false
+        searchView?.onActionViewExpanded()
 
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     searchViewModel.setQuery(query)
@@ -214,5 +176,58 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
         movieData.putString("desc", movie.desc)
         movieDetail.arguments = movieData
         supportFragmentManager.beginTransaction().addToBackStack("").replace(R.id.detail_frag_holder, movieDetail).commit()
+    }
+
+    private fun setupSearchRecyclerView() {
+        // should move all this logic to a new fragment
+        recyclerView = binding.recentSearches
+        recyclerView?.setHasFixedSize(true)
+        layoutManager = LinearLayoutManager(this)
+        recyclerView?.layoutManager = layoutManager
+        mAdapter = SearchAdapter(this)
+        recyclerView?.adapter = mAdapter
+        recyclerView?.visibility = View.GONE
+
+        val itemTouchHelperCallback = object :
+            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                searchViewModel.delete((mAdapter as SearchAdapter).getSearchAt(viewHolder.adapterPosition))
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+
+    }
+
+    fun setupViewModel() {
+        searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
+        searchViewModel.allSearches?.observe(this, Observer { searches ->
+            if (searches.size < 10) {
+                searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
+            } else {
+                searches?.let {
+                    (mAdapter as SearchAdapter).setSearches(
+                        it.subList(
+                            searches.size - 10,
+                            it.size
+                        ).reversed()
+                    )
+                }
+
+            }
+        })
+
+        searchMovie("popular")
+        searchViewModel.setQuery("popular")
+        searchViewModel.pageNumber.value = 1
     }
 }

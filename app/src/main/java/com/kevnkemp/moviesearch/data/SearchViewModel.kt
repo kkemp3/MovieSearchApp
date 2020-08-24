@@ -48,13 +48,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         repository.deleteAllSearches()
     }
 
-//    fun getAllSearches() : LiveData<List<Search>>? {
-//        return allSearches
-//    }
-//
-//    fun getMovies() : MutableLiveData<ArrayList<Movie>>? {
-//        return movies
-//    }
     fun setMovies(movies: ArrayList<Movie>) {
         this.movies.value = movies
     }
@@ -63,16 +56,10 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         this.movies.value?.addAll(movies)
     }
 
-//    fun getQuery() : MutableLiveData<String> {
-//        return query
-//    }
     fun setQuery(query: String) {
         this.query.value = query
     }
 
-//    fun getPageNumber() : MutableLiveData<Int> {
-//        return pageNumber
-//    }
     fun setPageNumber(number: Int) {
         this.pageNumber.value = number
     }
