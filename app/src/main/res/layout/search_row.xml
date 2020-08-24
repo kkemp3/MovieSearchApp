@@ -36,6 +36,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="5dp"
                 android:layout_weight="9"
+                android:fontFamily="@font/montserrat"
                 android:gravity="center_vertical"
                 android:text="TextView"
                 android:textColor="#FFFFFF"

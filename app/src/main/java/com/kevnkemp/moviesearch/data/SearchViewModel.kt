@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: SearchRepository
-    private val allSearches: LiveData<List<Search>>
-    private val movies: MutableLiveData<ArrayList<Movie>>
-    private val query: MutableLiveData<String>
-    private val pageNumber: MutableLiveData<Int>
+    val allSearches: LiveData<List<Search>>
+    val movies: MutableLiveData<ArrayList<Movie>>
+    val query: MutableLiveData<String>
+    val pageNumber: MutableLiveData<Int>
     val areSuggestionsVisible = MutableLiveData<Boolean>()
 
     init {
@@ -48,13 +48,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         repository.deleteAllSearches()
     }
 
-    fun getAllSearches() : LiveData<List<Search>>? {
-        return allSearches
-    }
-
-    fun getMovies() : MutableLiveData<ArrayList<Movie>>? {
-        return movies
-    }
+//    fun getAllSearches() : LiveData<List<Search>>? {
+//        return allSearches
+//    }
+//
+//    fun getMovies() : MutableLiveData<ArrayList<Movie>>? {
+//        return movies
+//    }
     fun setMovies(movies: ArrayList<Movie>) {
         this.movies.value = movies
     }
@@ -63,16 +63,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         this.movies.value?.addAll(movies)
     }
 
-    fun getQuery() : MutableLiveData<String> {
-        return query
-    }
+//    fun getQuery() : MutableLiveData<String> {
+//        return query
+//    }
     fun setQuery(query: String) {
         this.query.value = query
     }
 
-    fun getPageNumber() : MutableLiveData<Int> {
-        return pageNumber
-    }
+//    fun getPageNumber() : MutableLiveData<Int> {
+//        return pageNumber
+//    }
     fun setPageNumber(number: Int) {
         this.pageNumber.value = number
     }

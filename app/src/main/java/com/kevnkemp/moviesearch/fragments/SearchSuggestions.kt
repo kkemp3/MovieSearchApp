@@ -89,7 +89,7 @@ class SearchSuggestions : Fragment() {
 //        viewModel.getAllSearches()?.observe(viewLifecycleOwner, Observer { searches ->
 ////            (mAdapter as SearchAdapter).setSearches(searches)
 ////        })
-        viewModel.getAllSearches()?.observe(this, Observer { searches ->
+        viewModel.allSearches?.observe(this, Observer { searches ->
             if (searches.size < 10) {
                 searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
             } else {

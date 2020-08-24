@@ -78,16 +78,13 @@ class MovieList : Fragment() {
         recyclerView?.addOnScrollListener( object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-//                var lastCount = (layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
-//                var movieCount = viewModel?.getMovies()?.value?.size?.minus(1)
-                if (!recyclerView?.canScrollVertically(1)) {
+                if (!recyclerView?.canScrollVertically(1) && isLastVisible()) {
                     // request next page of API
-                    Toast.makeText(requireContext(), "Getting new data for page ${viewModel?.getPageNumber()?.value}", Toast.LENGTH_SHORT).show()
-                    isLoading = true
-                    if (viewModel?.getPageNumber()?.value!! > 1) {
-                        searchMovie(viewModel?.getQuery()?.value, page = viewModel?.getPageNumber()?.value!!)
+                    if (viewModel?.pageNumber?.value!! > 1) {
+                        Toast.makeText(requireContext(), "Getting new data for page ${viewModel?.pageNumber?.value}", Toast.LENGTH_SHORT).show()
+                        searchMovie(viewModel?.query?.value, page = viewModel?.pageNumber?.value!!)
                     }
-                    viewModel?.setPageNumber(viewModel?.getPageNumber()?.value!!.plus(1)!!)
+                    viewModel?.pageNumber!!.value = viewModel?.pageNumber?.value!!.plus(1)!!
                 }
             }
         })
@@ -97,11 +94,11 @@ class MovieList : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel?.getMovies()?.observe(viewLifecycleOwner, Observer {movies ->
+        viewModel?.movies?.observe(viewLifecycleOwner, Observer {movies ->
             (myAdapter as MovieAdapter).setMovies(movies)
         })
 
-        this.query = viewModel?.getQuery()?.value
+        this.query = viewModel?.query?.value
     }
 
     fun searchMovie(movie: String?, page: Int = 1) {
@@ -143,6 +140,12 @@ class MovieList : Fragment() {
             movieList.add(movie)
         }
         if (movieList.size > 0 ) viewModel?.appendMovies(movieList)
-        isLoading = false
+    }
+
+    fun isLastVisible() : Boolean {
+        val lom = recyclerView?.layoutManager as LinearLayoutManager
+        val pos = lom.findLastCompletelyVisibleItemPosition()
+        val numItems = recyclerView?.adapter?.itemCount?.minus(1)
+        return (pos >= numItems!!)
     }
 }

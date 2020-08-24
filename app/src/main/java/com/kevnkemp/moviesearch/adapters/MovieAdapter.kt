@@ -13,13 +13,21 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.kevnkemp.moviesearch.objects.Movie
 import com.kevnkemp.moviesearch.R
+import com.kevnkemp.moviesearch.data.Search
 
 class MovieAdapter(context: Context, list: ArrayList<Movie>) :
     RecyclerView.Adapter<MovieAdapter.MovieViewHolder>(){
 
     var movies = emptyList<Movie>()
     var ctx = context
+    var activity: MovieClicked? = null
+    interface MovieClicked {
+        fun onMovieClick(movie: Movie)
+    }
 
+    init {
+        activity = context as MovieClicked
+    }
     inner class MovieViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
             RecyclerView.ViewHolder(inflater.inflate(R.layout.row_layout, parent, false)) {
 
@@ -32,6 +40,10 @@ class MovieAdapter(context: Context, list: ArrayList<Movie>) :
             tvMovieName = itemView.findViewById(R.id.tvMovieName)
             tvMovieDate = itemView.findViewById(R.id.tvMovieDate)
             tvMovieDesc = itemView.findViewById(R.id.tvMovieDesc)
+
+            itemView.setOnClickListener {
+                activity?.onMovieClick(movies.get(adapterPosition))
+            }
         }
 
 
