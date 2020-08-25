@@ -42,20 +42,7 @@ class SearchSuggestions : Fragment() {
         recyclerView?.visibility = View.GONE
 
         viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-//        viewModel.getAllSearches()?.observe(this, Observer { searches ->
-//            if (searches.size < 10) {
-//                searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
-//            } else {
-//                searches?.let {
-//                    (mAdapter as SearchAdapter).setSearches(
-//                        it.subList(
-//                            searches.size - 10,
-//                            it.size
-//                        ).reversed()
-//                    )
-//                }
-//            }
-//        })
+
 
         val itemTouchHelperCallback = object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
@@ -86,10 +73,7 @@ class SearchSuggestions : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        viewModel.getAllSearches()?.observe(viewLifecycleOwner, Observer { searches ->
-////            (mAdapter as SearchAdapter).setSearches(searches)
-////        })
-        viewModel.allSearches?.observe(this, Observer { searches ->
+        viewModel.allSearches?.observe(viewLifecycleOwner, Observer { searches ->
             if (searches.size < 10) {
                 searches?.let { (mAdapter as SearchAdapter).setSearches(it.reversed()) }
             } else {

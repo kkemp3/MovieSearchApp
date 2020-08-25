@@ -2,15 +2,19 @@ package com.kevnkemp.moviesearch.activities
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.database.MatrixCursor
+import android.os.Build
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.annotation.RequiresApi
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -18,6 +22,7 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.appcompat.widget.SearchView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -31,7 +36,11 @@ import com.kevnkemp.moviesearch.adapters.SearchAdapter
 import com.kevnkemp.moviesearch.data.SearchViewModel
 import com.kevnkemp.moviesearch.databinding.ActivityMainBinding
 import com.kevnkemp.moviesearch.fragments.MovieDetail
+import com.kevnkemp.moviesearch.util.SearchUtil
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener
 import org.json.JSONException
+import java.time.LocalDate
 
 class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapter.MovieClicked {
 
@@ -41,8 +50,10 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
     var mAdapter: RecyclerView.Adapter<SearchAdapter.ViewHolder>? = null
     var layoutManager: RecyclerView.LayoutManager?  = null
     var currentQuery: String? = "batman"
+    var menu: Menu? = null
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var binding: ActivityMainBinding
+    private var ctx: Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,70 +66,19 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
     override fun onItemClick(search: Search) {
         searchViewModel.setQuery(search.query!!)
         searchViewModel.setPageNumber(1)
-        searchMovie(search.query)
+        searchViewModel.fullQuery.value = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=${search.query}&page="
+        SearchUtil.searchMovie(searchViewModel, this, search.query, true)
+        // hides soft keyboard once a recent search is selected
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(this.currentFocus?.windowToken, 0)
+        // collapses search view after recent search is select to improve UI
+        var searchMenu = menu?.findItem(R.id.action_search)
+        searchMenu?.collapseActionView()
     }
-
-    fun searchMovie(movie: String? = currentQuery, page: Int = 1) {
-
-        val queue = Volley.newRequestQueue(this)
-        var url: String? = null
-        if (movie.equals("popular")) {
-            url = "https://api.themoviedb.org/3/movie/popular?api_key=2696829a81b1b5827d515ff121700838&page=$page"
-        } else {
-            url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$movie&page=$page"
-        }
-
-        val stringRequest = StringRequest(Request.Method.GET, url, Response.Listener<String> { response ->
-
-            var result = JSONObject(response)
-            var movies = result.getJSONArray("results")
-            if (page == 1) movieList.clear()
-            processResults(movies, movie!!)
-
-        }, Response.ErrorListener {
-            Toast.makeText(this, "There was an error in the request", Toast.LENGTH_SHORT).show()
-        })
-
-        queue?.add(stringRequest)
-    }
-
-    private fun processResults(results: JSONArray, query: String) {
-
-        if (results.length() == 0) {
-            Toast.makeText(this, "No movies found with that title!", Toast.LENGTH_SHORT).show()
-        } else {
-            if (query != "popular") {
-                searchViewModel.insert(Search(query))
-            }
-        }
-
-        for (i in 0 until results.length()) {
-            var title = results.getJSONObject(i).getString("title")
-            var date: String = "No release date found"
-            try {
-                date = results.getJSONObject(i).getString("release_date")
-            } catch (e: JSONException) {
-
-            } finally {
-                if (date.isEmpty()) date = "No release date found"
-            }
-            var desc = results.getJSONObject(i).getString("overview")
-            var path = results.getJSONObject(i).getString("poster_path")
-            var movie = Movie(path, title, date, desc)
-            movieList.add(movie)
-        }
-
-        if (movieList.size > 0 ) {
-            searchViewModel.setMovies(movieList)
-        }
-        recyclerView?.visibility = View.GONE
-    }
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
+        this.menu = menu
         menuInflater.inflate(R.menu.main_menu, menu)
         var item: MenuItem? = menu?.findItem(R.id.action_search)
         var searchView: SearchView? = item?.actionView as SearchView
@@ -132,7 +92,8 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
                     searchViewModel.setQuery(query)
                     searchViewModel.setPageNumber(1)
                 }
-                searchMovie(query)
+                searchViewModel.fullQuery.value = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$query&page="
+                SearchUtil.searchMovie(searchViewModel, ctx , query, true)
                 recyclerView?.visibility = View.GONE
                 searchView.clearFocus()
                 return true
@@ -167,15 +128,26 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
         return super.onCreateOptionsMenu(menu)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onMovieClick(movie: Movie) {
         val movieDetail = MovieDetail()
         var movieData = Bundle()
         movieData.putString("imgLocation", movie.imgLocation)
         movieData.putString("title", movie.name)
-        movieData.putString("date", movie.date)
+        if (movie.date != "No release date found") {
+            var date = LocalDate.parse(movie.date)
+            movieData.putString("date", "${camelCaseString(date.month.toString())} ${date.dayOfMonth}, ${date.year}")
+        } else {
+            movieData.putString("date", movie.date)
+        }
         movieData.putString("desc", movie.desc)
+        movieData.putString("rating", movie.rating)
         movieDetail.arguments = movieData
-        supportFragmentManager.beginTransaction().addToBackStack("").replace(R.id.detail_frag_holder, movieDetail).commit()
+        val fragTransaction = supportFragmentManager.beginTransaction()
+        if (supportFragmentManager.findFragmentByTag("DETAIL") == null) {
+            fragTransaction.setCustomAnimations(R.anim.fragment_fade_enter, R.anim.fragment_fade_exit)
+            fragTransaction.addToBackStack("").add(R.id.main_content, movieDetail, "DETAIL").commit()
+        }
     }
 
     private fun setupSearchRecyclerView() {
@@ -206,6 +178,15 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
+        KeyboardVisibilityEvent.setEventListener(this, object : KeyboardVisibilityEventListener {
+            override fun onVisibilityChanged(isOpen: Boolean) {
+                if (isOpen) {
+                    recyclerView?.visibility = View.VISIBLE
+                }
+            }
+
+        })
+
     }
 
     fun setupViewModel() {
@@ -225,9 +206,15 @@ class MainActivity : AppCompatActivity(), SearchAdapter.ItemClicked, MovieAdapte
 
             }
         })
-
-        searchMovie("popular")
-        searchViewModel.setQuery("popular")
+        searchViewModel.fullQuery.value = "https://api.themoviedb.org/3/movie/popular?api_key=2696829a81b1b5827d515ff121700838&page="
         searchViewModel.pageNumber.value = 1
+        SearchUtil.searchMovie(searchViewModel, ctx, "", true)
+
+    }
+
+    fun camelCaseString(s: String) : String {
+        var capitalizedChar = s.substring(0,1).toUpperCase()
+        var loweredCaseChars = s.substring(1).toLowerCase()
+        return capitalizedChar + loweredCaseChars
     }
 }

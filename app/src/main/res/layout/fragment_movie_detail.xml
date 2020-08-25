@@ -17,14 +17,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="75dp"
             android:layout_marginBottom="10dp"
             android:fontFamily="@font/montserrat"
             android:gravity="center_horizontal"
             android:text="TextView"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
-            android:textStyle="bold|italic" />
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/ivDetail"
@@ -40,7 +40,9 @@
             android:id="@+id/tvDescDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
             android:layout_marginTop="5dp"
+            android:layout_marginRight="50dp"
             android:layout_marginBottom="10dp"
             android:fontFamily="@font/montserrat"
             android:gravity="center_horizontal"
@@ -56,7 +58,19 @@
             android:fontFamily="@font/montserrat"
             android:gravity="center_horizontal"
             android:text="TextView"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:fontFamily="@font/montserrat"
+            android:text="TextView"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
 
     </LinearLayout>
 </layout>

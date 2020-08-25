@@ -1,12 +1,16 @@
 package com.kevnkemp.moviesearch.fragments
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.ScrollView
 import android.widget.Toast
-import androidx.core.view.size
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,10 +20,13 @@ import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.kevnkemp.moviesearch.util.OnBottomReachedListener
 import com.kevnkemp.moviesearch.objects.Movie
 import com.kevnkemp.moviesearch.R
 import com.kevnkemp.moviesearch.data.SearchViewModel
 import com.kevnkemp.moviesearch.adapters.MovieAdapter
+import com.kevnkemp.moviesearch.databinding.FragmentMovieListBinding
+import com.kevnkemp.moviesearch.util.SearchUtil
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -40,14 +47,16 @@ class MovieList : Fragment() {
     var myAdapter: RecyclerView.Adapter<MovieAdapter.MovieViewHolder>? = null
     var layoutManager: RecyclerView.LayoutManager? = null
     var myView: View? = null
-    var movieList = ArrayList<Movie>()
     var viewModel: SearchViewModel? = null
     var queue: RequestQueue? = null
     var query: String? = null
+    var ctx: Context? = null
+    var binding: FragmentMovieListBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        recyclerBoilerPlate()
+        viewModel = ViewModelProvider(this.requireActivity()).get(SearchViewModel::class.java)
+
     }
 
     override fun onCreateView(
@@ -55,7 +64,9 @@ class MovieList : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        myView = inflater.inflate(R.layout.fragment_movie_list, container, false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_movie_list, container, false)
+//        myView = inflater.inflate(R.layout.fragment_movie_list, container, false)
+        myView = binding?.root
         return myView
     }
 
@@ -66,29 +77,30 @@ class MovieList : Fragment() {
 
     private fun recyclerBoilerPlate() {
         queue = Volley.newRequestQueue(requireContext())
-        recyclerView = myView?.findViewById(R.id.movie_list)
+        recyclerView = binding?.movieList
         recyclerView?.setHasFixedSize(true)
         layoutManager = LinearLayoutManager(this.activity)
         recyclerView?.layoutManager = layoutManager
-        myAdapter = MovieAdapter(this.requireContext(), movieList!!)
-        recyclerView?.adapter = myAdapter
+        myAdapter = MovieAdapter(this.requireContext(), viewModel!!)
+        ctx = this.requireContext()
 
-        viewModel = ViewModelProvider(this.requireActivity()).get(SearchViewModel::class.java)
-        recyclerView?.addOnScrollListener( object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (!recyclerView?.canScrollVertically(1) && isLastVisible()) {
-                    // request next page of API
-                    if (viewModel?.pageNumber?.value!! > 1) {
-                        Toast.makeText(requireContext(), "Getting new data for page ${viewModel?.pageNumber?.value}", Toast.LENGTH_SHORT).show()
-                        searchMovie(viewModel?.query?.value, page = viewModel?.pageNumber?.value!!)
+
+        recyclerView?.afterMeasured {
+            recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val lm = recyclerView.layoutManager as LinearLayoutManager
+                    var totalItems = lm.itemCount
+                    var lastVisible = lm.findLastCompletelyVisibleItemPosition()
+
+                    var endReached = lastVisible + 1 >= totalItems
+                    if (totalItems > 0 && endReached && !recyclerView.canScrollVertically(1)) {
+                        viewModel?.pageNumber!!.value = viewModel?.pageNumber?.value!!.plus(1)!!
+                        SearchUtil.searchMovie(viewModel!!, ctx!!, "", false)
                     }
-                    viewModel?.pageNumber!!.value = viewModel?.pageNumber?.value!!.plus(1)!!
                 }
-            }
-        })
-
-
+            })
+        }
+        recyclerView?.adapter = myAdapter
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -96,55 +108,18 @@ class MovieList : Fragment() {
         viewModel?.movies?.observe(viewLifecycleOwner, Observer {movies ->
             (myAdapter as MovieAdapter).setMovies(movies)
         })
-
         this.query = viewModel?.query?.value
     }
 
-    fun searchMovie(movie: String?, page: Int = 1) {
-        val url = "https://api.themoviedb.org/3/search/movie?api_key=2696829a81b1b5827d515ff121700838&query=$movie&page=$page"
-        val stringRequest =
-            StringRequest(
-                Request.Method.GET, url, Response.Listener<String> { response ->
-                    var result = JSONObject(response)
-                    var movies = result.getJSONArray("results")
-                    if (movies.length() > 0) {
-                        processResults(movies, movie!!)
-                    } else {
-                        Toast.makeText(requireContext(), "All results shown!", Toast.LENGTH_SHORT).show()
-                    }
-            },
-                Response.ErrorListener {
-                    Toast.makeText(requireContext(), "There was an error in the request", Toast.LENGTH_SHORT).show()
-                })
-
-        queue?.add(stringRequest)
-    }
-
-    private fun processResults(results: JSONArray, query: String) {
-
-        for (i in 0 until results.length()) {
-            var title = results.getJSONObject(i).getString("title")
-            var date: String = "No release date found"
-            try {
-                date = results.getJSONObject(i).getString("release_date")
-            } catch (e: JSONException) {
-
-            } finally {
-                if (date.isEmpty()) date = "No release date found"
+    inline fun RecyclerView.afterMeasured(crossinline f: RecyclerView.() -> Unit) {
+        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (measuredWidth > 0 && measuredHeight > 0) {
+                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    f()
+                }
             }
-            var desc = results.getJSONObject(i).getString("overview")
-            var path = results.getJSONObject(i).getString("poster_path")
-            var movie =
-                Movie(path, title, date, desc)
-            movieList.add(movie)
-        }
-        if (movieList.size > 0 ) viewModel?.appendMovies(movieList)
+        })
     }
 
-    fun isLastVisible() : Boolean {
-        val lom = recyclerView?.layoutManager as LinearLayoutManager
-        val pos = lom.findLastCompletelyVisibleItemPosition()
-        val numItems = recyclerView?.adapter?.itemCount?.minus(1)
-        return (pos >= numItems!!)
-    }
 }
