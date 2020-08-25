@@ -66,7 +66,7 @@ class MovieAdapter(context: Context, vm: SearchViewModel) :
     }
 
     override fun getItemCount(): Int {
-        return movies?.size!!
+        return movies.size
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -81,7 +81,15 @@ class MovieAdapter(context: Context, vm: SearchViewModel) :
             this.movies = movies
             notifyItemRangeInserted(pos - 20, this.movies.size - 1)
         }
-
+    }
+    fun appendMovies(movies: ArrayList<Movie>) {
+        var startPos = this.movies.size
+        var tempList = this.movies.toMutableList()
+        movies.forEach {
+            tempList.add(it)
+        }
+        this.movies = tempList
+        notifyItemRangeInserted(startPos, this.movies.size -1)
     }
 
     fun camelCaseString(s: String) : String {

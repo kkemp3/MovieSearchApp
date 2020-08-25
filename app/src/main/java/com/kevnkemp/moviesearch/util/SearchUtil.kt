@@ -33,6 +33,8 @@ class SearchUtil {
                 var result = JSONObject(response)
                 var movies = result.getJSONArray("results")
                 if (viewModel.pageNumber.value == 1) movieList.clear()
+                val size = movies.length()
+                //movieList.clear()
                 if (movie != null) {
                     processResults(viewModel, context, movies, movie, isNewSearch)
                 } else {

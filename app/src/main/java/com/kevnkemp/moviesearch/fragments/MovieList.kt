@@ -108,6 +108,9 @@ class MovieList : Fragment() {
         viewModel?.movies?.observe(viewLifecycleOwner, Observer {movies ->
             (myAdapter as MovieAdapter).setMovies(movies)
         })
+        viewModel?.newMovies?.observe(viewLifecycleOwner, Observer { newMovies ->
+            (myAdapter as MovieAdapter).appendMovies(newMovies)
+        })
         this.query = viewModel?.query?.value
     }
 

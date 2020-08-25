@@ -15,6 +15,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val repository: SearchRepository
     val allSearches: LiveData<List<Search>>
     val movies: MutableLiveData<ArrayList<Movie>>
+    val newMovies: MutableLiveData<ArrayList<Movie>>
     val query: MutableLiveData<String>
     val pageNumber: MutableLiveData<Int>
     val fullQuery: MutableLiveData<String>
@@ -24,6 +25,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         repository = SearchRepository(searchDao)
         allSearches = repository.allSearches
         movies = MutableLiveData<ArrayList<Movie>>()
+        newMovies = MutableLiveData<ArrayList<Movie>>()
         query = MutableLiveData<String>()
         pageNumber = MutableLiveData<Int>()
         fullQuery = MutableLiveData<String>()
@@ -55,9 +57,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun appendMovies(movies: ArrayList<Movie>) {
-        var tempList = this.movies.value
-        tempList?.addAll(movies)
-        this.movies.value = tempList
+        this.newMovies.value = movies
     }
 
     fun setQuery(query: String) {
